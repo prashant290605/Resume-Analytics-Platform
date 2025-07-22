@@ -1,295 +1,164 @@
 # Multi-Agent AI System for Job Screening
 
-A complete Python system with multiple agents working together to enhance the job screening process.
+A complete Python system with multiple AI agents working together to enhance the job screening and recruitment process.
 
 ## 🌟 Features
 
-- **Job Description Summarizer Agent**: Parses JDs into structured data
+- **Job Description Summarizer Agent**: Parses job descriptions into structured data
 - **CV Extractor Agent**: Extracts key information from PDF resumes
-- **Matching Agent**: Uses embeddings to calculate match scores
-- **Shortlisting Agent**: Automatically selects candidates with scores ≥ 80%
-- **Interview Scheduler Agent**: Generates personalized interview emails
-- **SQLite Memory Persistence**: Stores all data for future reference
-- **Streamlit UI**: User-friendly interface for easy interaction
-- **React Frontend**: Modern web interface with Material-UI design
+- **Matching Agent**: Uses AI embeddings to calculate candidate-job match scores
+- **Shortlisting Agent**: Automatically selects top candidates based on scores
+- **Email Agent**: Generates personalized interview invitation emails
+- **SQLite Database**: Stores all processed data for persistence
+- **Streamlit Web Interface**: User-friendly web interface for easy interaction
 
 ## 🗂️ Project Structure
 
 ```
-project/
-├── main.py                 # Main entry point
-├── app.py                  # Streamlit UI
-├── api.py                  # FastAPI backend for React frontend
-├── recruit-pro-frontend/   # React frontend application
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/         # Page components
-│   │   ├── services/      # API services
-│   │   └── App.js         # Main React app
-│   ├── package.json       # React dependencies
-│   └── README.md          # Frontend documentation
-├── agents/                 # Agent modules
+Recruit-Pro-main/
+├── main.py                 # Command-line entry point
+├── app.py                  # Streamlit web interface
+├── agents/                 # AI Agent modules
 │   ├── jd_summarizer.py    # Parse and summarize job descriptions
 │   ├── cv_extractor.py     # Extract structured data from resumes
-│   ├── matcher.py          # Match JDs with CVs using embeddings
-│   ├── shortlister.py      # Shortlist candidates based on score
-│   └── emailer.py          # Send interview invitation emails
+│   ├── matcher.py          # Match jobs with candidates using AI
+│   ├── shortlister.py      # Shortlist top candidates
+│   └── emailer.py          # Generate interview invitation emails
 ├── utils/                  # Utility modules
-│   ├── embeddings.py       # Embedding generation and similarity
+│   ├── embeddings.py       # AI embedding generation
 │   ├── parser.py           # Text parsing utilities
-│   └── diagram.py          # Agent interaction diagram generator
+│   └── diagram.py          # System diagram generator
 ├── db/                     # Database module
-│   └── memory.py           # SQLite memory persistence
-├── resumes/                # Resume PDF files
-│   └── *.pdf               # Example resumes
-├── job_description.csv     # Example job descriptions
-├── start_react_app.bat     # Windows batch script to start React app
-├── start_react_app.ps1     # PowerShell script to start React app
-└── README.md               # Project documentation
+│   └── memory.py           # SQLite database operations
+├── resumes/                # Resume PDF files directory
+├── job_description.csv     # Job descriptions data file
+└── requirements.txt        # Python dependencies
 ```
 
 ## 🚀 Installation
 
-1. Clone the repository:
+1. **Clone or download the project:**
    ```bash
-   git clone https://github.com/yourusername/job-screening-system.git
-   cd job-screening-system
+   cd Recruit-Pro-main
    ```
 
-2. Create a virtual environment:
+2. **Create a virtual environment (recommended):**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install Python dependencies:
+3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Install React dependencies:
-   ```bash
-   cd recruit-pro-frontend
-   npm install
-   cd ..
-   ```
-
-5. Set up Ollama:
+4. **Set up Ollama (optional for AI embeddings):**
    ```bash
    # Install Ollama from https://ollama.ai/
-   # Pull the required model
+   # Pull the embedding model
    ollama pull nomic-embed-text
    ```
 
-## 📊 Usage
+## 🖥️ How to Run
 
-### Option 1: React Frontend (Recommended)
+### **Streamlit Web Interface (Recommended)**
 
-The React frontend provides a modern, responsive interface with excellent text visibility and user experience.
+Launch the interactive web interface:
 
-**Quick Start:**
 ```bash
-# Windows
-start_react_app.bat
-
-# PowerShell
-.\start_react_app.ps1
+streamlit run app.py
 ```
 
-**Manual Start:**
-```bash
-# Terminal 1: Start FastAPI backend
-python api.py
+Then open your browser to: **http://localhost:8501**
 
-# Terminal 2: Start React frontend
-cd recruit-pro-frontend
-npm start
-```
+The web interface provides:
+- **Dashboard**: System overview and pipeline execution
+- **Job Management**: Upload and process job descriptions
+- **Resume Processing**: Upload and analyze candidate resumes
+- **AI Matching**: Run candidate-job matching with AI
+- **Shortlisting**: View and manage top candidates
+- **Email System**: Generate and send interview invitations
+- **Database Explorer**: Browse all processed data
 
-The React app will be available at: http://localhost:3000
+### **Command Line Interface**
 
-### Option 2: Streamlit UI
-
-Run the entire pipeline:
+Run the complete pipeline from command line:
 
 ```bash
 python main.py
 ```
 
-Run the Streamlit UI:
-
+**Advanced options:**
 ```bash
-streamlit run app.py
+python main.py --jd-file custom_jobs.csv --resumes-dir my_resumes --threshold 85 --send-emails
 ```
 
-Advanced usage with options:
-
-```bash
-python main.py --jd-file path/to/jds.csv --resumes-dir path/to/resumes --threshold 85 --send-emails
-```
-
-### Command Line Arguments
-
-- `--jd-file`: Path to job descriptions CSV file (default: job_description.csv)
-- `--resumes-dir`: Directory containing resume PDFs (default: resumes)
-- `--db-file`: SQLite database file path (default: memory.db)
-- `--threshold`: Minimum score threshold for shortlisting (default: 80.0)
-- `--send-emails`: Send interview invitation emails (default: false)
-- `--diagram-type`: Type of agent interaction diagram to generate (choices: mermaid, matplotlib; default: mermaid)
-
-## 🖥️ User Interfaces
-
-### React Frontend (Recommended)
-
-The React frontend offers:
-- **Modern Material-UI Design**: Clean, professional interface
-- **Excellent Text Visibility**: All text in dark colors for maximum readability
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Real-time Updates**: Live progress tracking and status updates
-- **File Upload**: Drag-and-drop file upload for job descriptions and resumes
-- **Interactive Dashboard**: Statistics, charts, and progress indicators
-- **API Integration**: Seamless communication with FastAPI backend
-
-**Features:**
-- Home dashboard with system overview
-- Job descriptions management
-- Resume upload and processing
-- AI-powered candidate matching
-- Automated shortlisting
-- Email management system
-- Database operations
-- About page with system information
-
-### Streamlit UI
-
-The Streamlit UI provides a user-friendly interface for interacting with the job screening system:
-
-- **Home**: Overview and full pipeline execution
-- **Job Descriptions**: Process and view job descriptions
-- **Resumes**: Process and view resume data
-- **Matching**: Run and view candidate matching results
-- **Shortlisting**: View and manage shortlisted candidates
-- **Emails**: Send and track interview invitations
-- **Database**: Explore the SQLite database
-- **About**: System information and architecture
-
-To launch the UI:
-
-```bash
-streamlit run app.py
-```
+**Command line arguments:**
+- `--jd-file`: Job descriptions CSV file (default: job_description.csv)
+- `--resumes-dir`: Resume PDF files directory (default: resumes)
+- `--threshold`: Minimum score for shortlisting (default: 80.0)
+- `--send-emails`: Actually send emails (default: simulate only)
+- `--db-file`: Database file path (default: memory.db)
 
 ## 🤖 How It Works
 
-1. **JD Summarizer Agent**:
-   - Parses job descriptions from CSV file
-   - Extracts structured data using Ollama or rule-based extraction
-   - Stores in SQLite database
+1. **Job Description Processing**:
+   - Loads job descriptions from CSV file
+   - Extracts requirements, skills, and key information
+   - Stores structured data in database
 
-2. **CV Extractor Agent**:
-   - Reads PDF resumes using PyMuPDF
-   - Extracts name, email, phone, education, work experience, skills, etc.
+2. **Resume Analysis**:
+   - Reads PDF resume files from the resumes directory
+   - Extracts candidate information (name, email, skills, experience)
    - Stores parsed data in database
 
-3. **Matching Agent**:
-   - Creates embeddings for JDs and CVs using Ollama's nomic-embed-text model
-   - Calculates cosine similarity to get match scores
-   - Stores scores in database
+3. **AI-Powered Matching**:
+   - Generates AI embeddings for jobs and resumes
+   - Calculates similarity scores between candidates and positions
+   - Falls back to keyword matching if AI is unavailable
 
-4. **Shortlisting Agent**:
-   - Filters candidates with scores above threshold (default: 80%)
-   - Generates shortlist for each job
+4. **Smart Shortlisting**:
+   - Filters candidates above score threshold (default: 80%)
+   - Ranks candidates by match score for each position
    - Stores shortlisted candidates in database
 
-5. **Interview Scheduler Agent**:
-   - Generates personalized emails for shortlisted candidates
-   - Highlights matched skills from the candidate's resume
-   - Simulates or sends emails using SMTP
-
-6. **Database Module**:
-   - Stores all data for persistence across runs
-   - Enables querying and reporting
-
-## 📝 Dependencies
-
-### Python Backend
-- `ollama`: For embedding generation
-- `pymupdf`: For PDF parsing
-- `numpy`, `scikit-learn`: For vector operations and similarity calculation
-- `matplotlib`, `networkx`: For diagram generation 
-- `sqlite3`: For database operations
-- `streamlit`, `pandas`: For UI and data visualization
-- `fastapi`, `uvicorn`: For API backend
-
-### React Frontend
-- `react`: Frontend framework
-- `@mui/material`: Material-UI components
-- `@mui/icons-material`: Material icons
-- `react-router-dom`: Client-side routing
-- `axios`: HTTP client for API calls
+5. **Email Generation**:
+   - Creates personalized interview invitation emails
+   - Highlights matching skills and qualifications
+   - Can simulate or actually send emails via SMTP
 
 ## 📋 Requirements
 
-```
-# Python dependencies
-pymupdf==1.22.5
-numpy==1.26.1
-scikit-learn==1.3.1
-matplotlib==3.8.0
-networkx==3.2.1
-ollama==0.4.7
-streamlit==1.27.2
-pandas==2.1.1
-fastapi==0.104.1
-uvicorn==0.24.0
-python-multipart==0.0.6
+- Python 3.8+
+- PDF resume files in the `resumes/` directory
+- Job descriptions in `job_description.csv` file
+- Optional: Ollama for AI embeddings
 
-# React dependencies (see recruit-pro-frontend/package.json)
-```
+## 📊 Data Format
 
-## 📊 Agent Interaction Diagram
+**Job Descriptions CSV** should have columns:
+- `title`: Job title
+- `description`: Full job description text
 
-```mermaid
-graph TD
-    A[JD Summarizer Agent] -->|Passes JD summaries| C[Matching Agent]
-    B[CV Extractor Agent] -->|Passes parsed CVs| C
-    C -->|Passes match scores| D[Shortlisting Agent]
-    D -->|Passes shortlisted candidates| E[Interview Scheduler Agent]
-    
-    classDef agent fill:#f9f,stroke:#333,stroke-width:2px;
-    class A,B,C,D,E agent;
-```
+**Resume Files**:
+- PDF format files in the `resumes/` directory
+- System automatically extracts text and information
 
-## 🚀 Quick Start with React
+## 🎯 Getting Started
 
-1. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   cd recruit-pro-frontend && npm install && cd ..
-   ```
-
-2. **Start the application:**
-   ```bash
-   # Windows
-   start_react_app.bat
-   
-   # Or manually:
-   # Terminal 1
-   python api.py
-   
-   # Terminal 2
-   cd recruit-pro-frontend
-   npm start
-   ```
-
-3. **Open your browser:**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
+1. **Install dependencies:** `pip install -r requirements.txt`
+2. **Add your data:**
+   - Place resume PDF files in `resumes/` directory
+   - Update `job_description.csv` with your job postings
+3. **Run the application:** `streamlit run app.py`
+4. **Open your browser:** http://localhost:8501
+5. **Click "Run Full Pipeline"** to process everything!
 
 ## 📄 License
 
-MIT License
+MIT License - Feel free to use and modify for your recruitment needs.
 
-## ✨ Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request. 
+**Ready to streamline your recruitment process? Just run `streamlit run app.py` and get started!** 🚀 

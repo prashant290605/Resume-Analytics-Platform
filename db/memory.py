@@ -367,4 +367,94 @@ class MemoryDB:
         if hasattr(self._local, 'conn') and self._local.conn:
             self._local.conn.close()
             self._local.conn = None
-            self._local.cursor = None 
+            self._local.cursor = None
+
+    # Additional methods for API compatibility
+    def get_job_descriptions(self):
+        """Get all job descriptions (alias for get_all_jds)"""
+        return self.get_all_jds()
+    
+    def get_resumes(self):
+        """Get all resumes (alias for get_all_cvs)"""
+        return self.get_all_cvs()
+    
+    def get_matches(self):
+        """Get all match scores"""
+        cursor = self.get_cursor()
+        query = '''
+        SELECT m.*, j.job_title, c.name as candidate_name, c.email
+        FROM match_scores m
+        JOIN jd_summaries j ON m.jd_id = j.id
+        JOIN cv_data c ON m.cv_id = c.id
+        ORDER BY m.score DESC
+        '''
+        cursor.execute(query)
+        results = cursor.fetchall()
+        return [dict(row) for row in results]
+    
+    def get_shortlisted(self):
+        """Get all shortlisted candidates (alias for get_shortlisted_candidates)"""
+        return self.get_shortlisted_candidates()
+    
+    def add_job_description(self, jd_data):
+        """Add a job description"""
+        if isinstance(jd_data, dict):
+            title = jd_data.get('title', 'Unknown Job')
+            summary = jd_data.get('summary', jd_data)
+            return self.insert_jd_summary(title, summary)
+        return None
+    
+    def add_resume(self, resume_data):
+        """Add a resume"""
+        if isinstance(resume_data, dict):
+            filename = resume_data.get('filename', 'unknown.pdf')
+            return self.insert_cv_data(filename, resume_data)
+        return None
+    
+    def add_match(self, match_data):
+        """Add a match score"""
+        if isinstance(match_data, dict):
+            jd_id = match_data.get('jd_id')
+            cv_id = match_data.get('cv_id')
+            score = match_data.get('score', 0.0)
+            if jd_id and cv_id:
+                return self.insert_match_score(jd_id, cv_id, score)
+        return None
+    
+    def add_shortlisted(self, candidate_data):
+        """Add a shortlisted candidate"""
+        if isinstance(candidate_data, dict):
+            match_id = candidate_data.get('match_id')
+            jd_id = candidate_data.get('jd_id')
+            cv_id = candidate_data.get('cv_id')
+            score = candidate_data.get('score', 0.0)
+            if match_id and jd_id and cv_id:
+                return self.insert_shortlisted(match_id, jd_id, cv_id, score)
+        return None
+    
+    def clear_matches(self):
+        """Clear all match scores"""
+        conn = self.get_connection()
+        cursor = self.get_cursor()
+        cursor.execute("DELETE FROM match_scores")
+        conn.commit()
+    
+    def clear_shortlisted(self):
+        """Clear all shortlisted candidates"""
+        conn = self.get_connection()
+        cursor = self.get_cursor()
+        cursor.execute("DELETE FROM shortlist")
+        conn.commit()
+    
+    def clear_all(self):
+        """Clear all data from database"""
+        conn = self.get_connection()
+        cursor = self.get_cursor()
+        
+        # Clear in correct order due to foreign keys
+        cursor.execute("DELETE FROM shortlist")
+        cursor.execute("DELETE FROM match_scores")
+        cursor.execute("DELETE FROM cv_data")
+        cursor.execute("DELETE FROM jd_summaries")
+        
+        conn.commit() 

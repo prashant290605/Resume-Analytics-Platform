@@ -48,30 +48,27 @@ class ShortlisterAgent:
             print(f"\nJob: {job_title}")
             print(f"Number of shortlisted candidates: {len(candidates)}")
             
-            for i, (cv, score) in enumerate(candidates):
-                print(f"  {i+1}. {cv.get('name', 'Unknown')} - Score: {score:.2f}%")
+            for i, (cv, score) in enumerate(candidates[:10], 1):  # Show top 10
+                name = cv.get('name', 'Unknown')
+                email = cv.get('email', 'N/A')
+                print(f"  {i}. {name} ({email}) - Score: {score:.2f}%")
     
     def get_shortlist_data(self, shortlisted: Dict[str, List[Tuple[Dict[str, Any], float]]]) -> List[Dict[str, Any]]:
-        """Convert shortlisted data to format suitable for database storage
+        """Convert shortlisted candidates to a flat list format
         
         Args:
             shortlisted: Dictionary mapping job title to shortlisted (CV, score) tuples
             
         Returns:
-            List of dictionaries with shortlisted candidate data
+            List of candidate data dictionaries with job information
         """
         shortlist_data = []
         
         for job_title, candidates in shortlisted.items():
             for cv, score in candidates:
-                entry = {
-                    'job_title': job_title,
-                    'cv_filename': cv.get('filename', ''),
-                    'name': cv.get('name', 'Unknown'),
-                    'email': cv.get('email', ''),
-                    'phone': cv.get('phone', ''),
-                    'score': score
-                }
-                shortlist_data.append(entry)
+                candidate_data = cv.copy()  # Make a copy to avoid modifying original
+                candidate_data['job_title'] = job_title
+                candidate_data['match_score'] = score
+                shortlist_data.append(candidate_data)
         
         return shortlist_data 

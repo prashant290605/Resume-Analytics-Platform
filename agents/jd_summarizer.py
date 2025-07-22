@@ -15,7 +15,7 @@ class JDSummarizerAgent:
             csv_path: Path to the CSV file containing job descriptions
         """
         self.csv_path = csv_path
-        
+    
     def load_jds(self) -> List[Dict[str, str]]:
         """Load job descriptions from CSV file
         

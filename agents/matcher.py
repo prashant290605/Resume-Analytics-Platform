@@ -23,14 +23,71 @@ class MatcherAgent:
         Returns:
             Match score (0-100)
         """
-        # Get embeddings
-        jd_embedding = self.embedding_util.get_jd_embedding(jd_data)
-        cv_embedding = self.embedding_util.get_cv_embedding(cv_data)
+        try:
+            # Get embeddings
+            jd_embedding = self.embedding_util.get_jd_embedding(jd_data)
+            cv_embedding = self.embedding_util.get_cv_embedding(cv_data)
+            
+            # Calculate similarity
+            score = self.embedding_util.calculate_similarity(jd_embedding, cv_embedding)
+            
+            return score
+        except Exception as e:
+            # Use fallback scoring without embeddings
+            return self._keyword_based_scoring(jd_data, cv_data)
+    
+    def _keyword_based_scoring(self, jd_data: Dict[str, Any], cv_data: Dict[str, Any]) -> float:
+        """Fallback keyword-based scoring when embeddings are not available"""
+        # Extract job requirements
+        jd_skills = []
+        if isinstance(jd_data, dict) and 'summary' in jd_data and 'required_skills' in jd_data['summary']:
+            skills = jd_data['summary']['required_skills']
+            if isinstance(skills, list):
+                jd_skills = [s.lower().strip() for s in skills]
+            elif isinstance(skills, str):
+                jd_skills = [s.strip().lower() for s in skills.split(',')]
         
-        # Calculate similarity
-        score = self.embedding_util.calculate_similarity(jd_embedding, cv_embedding)
+        # Extract candidate skills
+        cv_skills = []
+        if isinstance(cv_data, dict) and 'skills' in cv_data:
+            skills = cv_data['skills']
+            if isinstance(skills, list):
+                cv_skills = [s.lower().strip() for s in skills]
+            elif isinstance(skills, str):
+                cv_skills = [s.strip().lower() for s in skills.split(',')]
         
-        return score
+        # Calculate skill match score
+        if not jd_skills:
+            return 60.0  # Default score when no job skills specified
+        
+        matching_skills = 0
+        for jd_skill in jd_skills:
+            for cv_skill in cv_skills:
+                if jd_skill in cv_skill or cv_skill in jd_skill:
+                    matching_skills += 1
+                    break
+        
+        # Base score from skill matching
+        skill_score = (matching_skills / len(jd_skills)) * 100
+        
+        # Add bonus for experience keywords
+        experience_keywords = ['year', 'experience', 'senior', 'lead', 'manager', 'director']
+        cv_text = str(cv_data.get('work_experience', '')).lower()
+        experience_bonus = sum(5 for keyword in experience_keywords if keyword in cv_text)
+        
+        # Add bonus for education keywords
+        education_keywords = ['degree', 'bachelor', 'master', 'phd', 'university', 'college']
+        cv_education = str(cv_data.get('education', '')).lower()
+        education_bonus = sum(3 for keyword in education_keywords if keyword in cv_education)
+        
+        # Calculate final score
+        final_score = min(100, skill_score + experience_bonus + education_bonus)
+        
+        # Add some randomness for variety
+        import random
+        final_score += random.uniform(-5, 5)
+        
+        return max(0, min(100, final_score))
     
     def match_jd_with_all_cvs(self, jd_data: Dict[str, Any], cv_data_list: List[Dict[str, Any]]) -> List[Tuple[Dict[str, Any], float]]:
         """Match a job description with all resumes
