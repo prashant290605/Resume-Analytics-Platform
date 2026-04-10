@@ -1,0 +1,10 @@
+.venv/
+backend/data/resume_analytics.db
+backend/data/uploads/jobs/*
+backend/data/uploads/resumes/*
+!backend/data/uploads/jobs/.gitkeep
+!backend/data/uploads/resumes/.gitkeep
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
