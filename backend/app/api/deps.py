@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from fastapi import Request
-
 from backend.app.core.config import Settings, get_settings
 from backend.app.db.database import Database
 from backend.app.db.repository import ScreeningRepository
 from backend.app.services.embeddings import MatchingEngine
 from backend.app.services.screening import ScreeningService
+from fastapi import Request
 
 
 def get_app_settings() -> Settings:

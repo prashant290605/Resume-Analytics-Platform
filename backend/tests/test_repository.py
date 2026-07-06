@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 PARSED_RESUME = {
     "name": "Alex Candidate",
     "email": "alex@example.com",

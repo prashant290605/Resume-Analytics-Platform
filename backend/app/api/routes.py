@@ -4,8 +4,6 @@ import shutil
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-
 from backend.app.api.deps import (
     get_app_settings,
     get_matching_engine,
@@ -23,15 +21,16 @@ from backend.app.models.schemas import (
     DefaultJDResponse,
     HealthResponse,
     JobDescriptionResponse,
+    ResultsResponse,
     ResumeUploadItem,
     ResumeUploadResponse,
-    ResultsResponse,
     RunScreeningRequest,
     ScreeningRunResponse,
 )
 from backend.app.services.embeddings import MatchingEngine
 from backend.app.services.parsing import extract_text_from_pdf, parse_job_description, parse_resume_text
 from backend.app.services.screening import ScreeningService
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 router = APIRouter(prefix="/api")
 

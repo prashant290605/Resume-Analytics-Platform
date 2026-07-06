@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from backend.app.services.embeddings import MatchingEngine
 
 
@@ -71,7 +70,13 @@ class TestHybridScoring:
     def test_batch_scoring_preserves_order(self, engine):
         resumes = [
             {"id": 1, "parsed": make_resume(["Python"], 1, "Python beginner.")},
-            {"id": 2, "parsed": make_resume(["Python", "FastAPI", "SQL", "Docker", "AWS"], 5, "Senior backend engineer, Python FastAPI AWS Docker SQL.")},
+            {
+                "id": 2,
+                "parsed": make_resume(
+                    ["Python", "FastAPI", "SQL", "Docker", "AWS"], 5,
+                    "Senior backend engineer, Python FastAPI AWS Docker SQL.",
+                ),
+            },
         ]
         provider, computations = engine.score_candidates(JOB, resumes)
         assert provider == "local_tfidf"

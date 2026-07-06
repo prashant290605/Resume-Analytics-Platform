@@ -10,7 +10,6 @@ from fastapi.testclient import TestClient
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from backend.app.core import config as config_module  # noqa: E402
 from backend.app.core.config import Settings, get_settings  # noqa: E402
 from backend.app.db.database import Database  # noqa: E402
 from backend.app.db.repository import ScreeningRepository  # noqa: E402

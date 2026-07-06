@@ -6,7 +6,6 @@ from typing import Any
 
 import fitz
 
-
 SKILL_KEYWORDS = [
     "Python",
     "Java",
@@ -104,8 +103,10 @@ def parse_resume_text(text: str, file_name: str) -> dict[str, Any]:
         "email": email_match.group(0) if email_match else None,
         "phone": phone_match.group(0) if phone_match else None,
         "skills": sorted(set(find_keywords(cleaned, SKILL_KEYWORDS) + extract_skills_section(cleaned))),
-        "education": extract_section(cleaned, ["education", "academic background"], ["experience", "skills", "projects", "certifications"]) or top_chunk,
-        "work_experience": extract_section(cleaned, ["experience", "work experience", "employment history"], ["education", "skills", "projects", "certifications"]) or summary,
+        "education": extract_section(cleaned, ["education", "academic background"],
+            ["experience", "skills", "projects", "certifications"]) or top_chunk,
+        "work_experience": extract_section(cleaned, ["experience", "work experience", "employment history"],
+            ["education", "skills", "projects", "certifications"]) or summary,
         "certifications": sorted(set(find_keywords(cleaned, CERTIFICATION_KEYWORDS))),
         "years_experience": estimate_years_experience(cleaned),
         "summary": summary,
@@ -152,7 +153,8 @@ def find_keywords(text: str, keywords: list[str]) -> list[str]:
 
 
 def extract_skills_section(text: str) -> list[str]:
-    section = extract_section(text, ["skills", "technical skills", "core competencies"], ["experience", "education", "projects", "certifications"])
+    section = extract_section(text, ["skills", "technical skills", "core competencies"],
+        ["experience", "education", "projects", "certifications"])
     if not section:
         return []
     tokens = re.split(r"[,|/•\n]", section)

@@ -2,12 +2,8 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Awaitable, Callable
-
-from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from backend.app.api.routes import router
 from backend.app.core.config import get_settings
@@ -16,6 +12,9 @@ from backend.app.db.database import Database
 from backend.app.db.repository import ScreeningRepository
 from backend.app.services.embeddings import MatchingEngine
 from backend.app.services.screening import ScreeningService
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 

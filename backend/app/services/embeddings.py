@@ -6,11 +6,9 @@ from typing import Protocol
 
 import numpy as np
 import requests
+from backend.app.core.config import get_settings
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
-from backend.app.core.config import get_settings
-
 
 logger = logging.getLogger(__name__)
 

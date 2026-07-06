@@ -4,12 +4,10 @@ import logging
 from statistics import mean
 from typing import Any
 
-from fastapi import HTTPException
-
 from backend.app.db.repository import ScreeningRepository
 from backend.app.services.emailer import generate_interview_email
 from backend.app.services.embeddings import MatchingEngine
-
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
