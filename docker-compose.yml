@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      RAP_LOG_LEVEL: INFO
+      RAP_CORS_ORIGINS: '["http://localhost:3000"]'
+      # Uncomment to use Ollama embeddings (see `ollama` profile below):
+      # RAP_OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - rap-data:/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+  # Optional: higher-quality embeddings via Ollama.
+  # Start with: docker compose --profile ollama up
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "11434:11434"
+
+volumes:
+  rap-data:
+  ollama-models:
