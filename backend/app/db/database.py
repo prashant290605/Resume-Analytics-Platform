@@ -5,18 +5,19 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-from backend.app.core.config import DATABASE_PATH
+from backend.app.core.config import get_settings
 
 
 class Database:
-    def __init__(self, db_path: Path | str = DATABASE_PATH):
-        self.db_path = str(db_path)
+    def __init__(self, db_path: Path | str | None = None):
+        self.db_path = str(db_path if db_path is not None else get_settings().database_path)
         self._initialise()
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path, check_same_thread=False)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA journal_mode = WAL")
         return connection
 
     @contextmanager
@@ -95,6 +96,15 @@ class Database:
             )
             self._ensure_column(conn, "resumes", "batch_id", "INTEGER REFERENCES batches(id) ON DELETE SET NULL")
             self._ensure_column(conn, "screenings", "batch_id", "INTEGER REFERENCES batches(id) ON DELETE SET NULL")
+            conn.executescript(
+                """
+                CREATE INDEX IF NOT EXISTS idx_matches_screening ON matches (screening_id);
+                CREATE INDEX IF NOT EXISTS idx_matches_resume ON matches (resume_id);
+                CREATE INDEX IF NOT EXISTS idx_resumes_batch ON resumes (batch_id);
+                CREATE INDEX IF NOT EXISTS idx_screenings_job ON screenings (job_id);
+                CREATE INDEX IF NOT EXISTS idx_screenings_batch ON screenings (batch_id);
+                """
+            )
 
     def _ensure_column(self, conn: sqlite3.Connection, table_name: str, column_name: str, definition: str) -> None:
         existing_columns = {

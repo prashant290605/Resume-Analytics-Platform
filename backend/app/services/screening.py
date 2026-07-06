@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class ScreeningService:
-    def __init__(self, repository: ScreeningRepository):
+    def __init__(self, repository: ScreeningRepository, matching_engine: MatchingEngine | None = None):
         self.repository = repository
-        self.matching_engine = MatchingEngine()
+        self.matching_engine = matching_engine or MatchingEngine()
 
     def run_screening(self, job_id: int, threshold: float, generate_emails: bool, batch_id: int | None = None) -> dict[str, Any]:
         job = self.repository.get_job(job_id)
@@ -41,17 +41,11 @@ class ScreeningService:
 
         candidates: list[dict[str, Any]] = []
         for resume, computation in zip(resumes, computations, strict=True):
-            debug_message = (
-                f"score_debug resume_id={resume['id']} batch_id={batch_id} "
-                f"skill_score={computation.skill_score:.2f} "
-                f"semantic_score={computation.semantic_score:.2f} "
-                f"experience_score={computation.experience_score:.2f} "
-                f"final_score={computation.score:.2f}"
-            )
             logger.debug(
-                debug_message
+                "score resume_id=%s batch_id=%s skill=%.2f semantic=%.2f experience=%.2f final=%.2f",
+                resume["id"], batch_id, computation.skill_score,
+                computation.semantic_score, computation.experience_score, computation.score,
             )
-            print(debug_message)
             shortlisted = computation.score >= threshold
             email_content = None
             if generate_emails and shortlisted:

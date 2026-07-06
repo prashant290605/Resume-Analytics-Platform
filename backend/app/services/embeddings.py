@@ -9,7 +9,7 @@ import requests
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from backend.app.core.config import OLLAMA_BASE_URL, OLLAMA_MODEL
+from backend.app.core.config import get_settings
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,10 @@ class EmbeddingProvider(Protocol):
 class OllamaEmbeddingProvider:
     name = "ollama"
 
-    def __init__(self, base_url: str = OLLAMA_BASE_URL, model: str = OLLAMA_MODEL):
+    def __init__(self, base_url: str | None = None, model: str | None = None):
+        settings = get_settings()
+        base_url = base_url or settings.ollama_base_url
+        model = model or settings.ollama_model
         self.base_url = base_url.rstrip("/")
         self.model = model
 
