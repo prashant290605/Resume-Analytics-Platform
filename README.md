@@ -1,31 +1,41 @@
 # Resume Analytics Platform
 
+**AI-powered resume screening: upload a job description and a stack of PDF resumes, get an explainable, ranked shortlist with interview outreach drafts.**
+
 [![CI](https://github.com/prashant290605/Resume-Analytics-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/prashant290605/Resume-Analytics-Platform/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-Vite-61DAFB.svg)](https://react.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A production-style resume screening platform. Upload job descriptions and PDF resumes; a hybrid scoring engine (semantic similarity + skill overlap + experience fit) ranks candidates, shortlists top matches, and drafts interview outreach emails — behind a typed FastAPI backend with a React dashboard.
+## 🚀 Live Demo
 
-**Measured:** parses and ranks a 200-resume batch in **under 1 second** on the deterministic TF-IDF path (see [Benchmarks](#benchmarks)).
+**→ [resume-analytics-i93z.onrender.com](https://resume-analytics-i93z.onrender.com)**
 
-## Quickstart
+> Hosted on Render's free tier — the first request after idle can take up to a minute to cold-start. Try it: paste any JD (or pick a built-in role), upload PDFs from [`samples/`](samples/), and run a screening.
 
-```bash
-# Everything (frontend on :3000, API on :8000)
-docker compose up --build
+**Measured performance:** parses and ranks a **200-resume batch in under 1 second** on the deterministic TF-IDF path ([benchmarks](#benchmarks)).
 
-# With higher-quality Ollama embeddings
-docker compose --profile ollama up --build
-```
+## Features
 
-Manual setup:
+- **PDF resume parsing** — extracts name, contact, skills, experience, and education from real-world resume PDFs (PyMuPDF + section heuristics)
+- **Hybrid scoring engine** — ranks candidates by weighted **semantic similarity + skill overlap + experience fit**, not just cosine similarity
+- **Explainable results** — per-candidate breakdown with matched and missing skills persisted for every screening run
+- **Pluggable embeddings** — Ollama (`nomic-embed-text`) when available, automatic fallback to deterministic TF-IDF; active provider recorded per run
+- **Hiring batches** — group uploads into batches and screen them independently
+- **Outreach drafts** — shortlisted candidates get a generated interview invitation draft
+- **Recruiter dashboard** — aggregate metrics, ranked results with search/sort/filter, candidate detail views
+- **Production hardening** — upload validation (magic bytes, size caps), env-driven config, structured request logging, Prometheus `/metrics`, Dockerized deploy
 
-```bash
-make install          # backend deps
-make run              # API on :8000 (docs at /docs)
-make frontend         # React dev server on :5173
-make test             # pytest suite
-```
+## Screenshots
+
+| Dashboard | Job intake & uploads |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Job intake and resume uploads](docs/screenshots/job-intake.png) |
+
+| Ranked screening results | Explainable match breakdown |
+|---|---|
+| ![Screening results](docs/screenshots/screening-results.png) | ![Match breakdown](docs/screenshots/match-breakdown.png) |
 
 ## Architecture
 
@@ -49,10 +59,48 @@ make test             # pytest suite
 
 Key design decisions (full rationale in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)):
 
-- **Pluggable embeddings.** Providers implement a typed `Protocol`; Ollama is probed at runtime with graceful fallback to deterministic TF-IDF, so the system works with zero external dependencies and tests stay reproducible.
-- **Hybrid scoring, not just cosine similarity.** Final score = weighted semantic similarity + skill overlap + experience fit, with a per-candidate breakdown persisted for explainability.
-- **Dependency injection.** All long-lived objects are built once in the FastAPI lifespan and injected via `Depends` — no import-time singletons, trivially testable.
-- **SQLite on purpose.** Single-tenant tool, zero-ops persistence, WAL mode + covering indexes. The repository layer isolates SQL, so a Postgres migration is contained to one module.
+- **Dependency injection.** Long-lived objects are built once in the FastAPI lifespan and injected via `Depends` — no import-time singletons, trivially testable.
+- **Provider fallback over hard dependency.** The system is fully functional with zero external services; higher-quality embeddings are an upgrade, not a requirement.
+- **SQLite on purpose.** Single-tenant tool: WAL mode, covering indexes, zero ops. The repository layer isolates SQL so a Postgres migration touches one module.
+- **Deliberate non-goals.** No auth (single-tenant by design) and no task queue (batches finish in <1 s) — documented tradeoffs, not omissions.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12, FastAPI, Pydantic v2, pydantic-settings |
+| Scoring | scikit-learn (TF-IDF), Ollama embeddings (optional), custom hybrid ranker |
+| Parsing | PyMuPDF |
+| Database | SQLite (WAL, indexed), repository pattern |
+| Frontend | React (Vite), Tailwind CSS, axios |
+| Ops | Docker (multi-stage, non-root), Docker Compose, nginx, GitHub Actions, Prometheus metrics |
+| Testing | pytest (27 tests), ruff |
+
+## Installation
+
+```bash
+git clone https://github.com/prashant290605/Resume-Analytics-Platform.git
+cd Resume-Analytics-Platform
+
+# Backend (Python 3.11+)
+make install            # pip install -r backend/requirements-dev.txt
+make run                # API on http://localhost:8000 (docs at /docs)
+
+# Frontend
+make dev                # installs frontend deps
+make frontend           # dev server on http://localhost:5173
+```
+
+Configuration is env-driven with sane defaults — copy [.env.example](.env.example) to `.env` to customize (`RAP_DATA_DIR`, `RAP_OLLAMA_BASE_URL`, `RAP_MAX_UPLOAD_BYTES`, `RAP_CORS_ORIGINS`, ...).
+
+## Docker
+
+```bash
+docker compose up --build            # frontend :3000, API :8000
+docker compose --profile ollama up   # + Ollama for higher-quality embeddings
+```
+
+Backend image: multi-stage `python:3.12-slim`, non-root user, healthcheck. Frontend image: Node build → nginx serving the SPA and proxying `/api`. Data persists in the `rap-data` volume.
 
 ## API
 
@@ -67,10 +115,17 @@ Key design decisions (full rationale in [docs/ARCHITECTURE.md](docs/ARCHITECTURE
 | POST | `/api/batch/{id}/upload` | Upload resumes into a batch |
 | POST | `/api/screenings/run` | Rank all/batch resumes against a JD |
 | GET | `/api/results` | Ranked results with score breakdowns |
-| GET | `/api/candidates/{id}` | Candidate detail + generated outreach email |
+| GET | `/api/candidates/{id}` | Candidate detail + outreach draft |
 | GET | `/metrics` | Prometheus metrics |
 
-Interactive docs: `http://localhost:8000/docs`.
+Interactive OpenAPI docs: [`/docs`](https://resume-analytics-i93z.onrender.com/docs) on any running instance.
+
+## Usage
+
+1. **Add a job description** — paste text, upload a TXT/PDF brief, or pick a built-in role.
+2. **Upload resumes** — drag-and-drop PDFs (optionally into a named hiring batch). Uploads are validated by extension, `%PDF` magic bytes, and size.
+3. **Run screening** — choose the role and shortlist threshold; the hybrid engine scores every candidate.
+4. **Review results** — sort/search the ranked table, open any candidate for the semantic/skills/experience breakdown with matched vs. missing skills, and grab the generated outreach draft for shortlisted candidates.
 
 ## Benchmarks
 
@@ -82,49 +137,28 @@ Measured on the TF-IDF fallback path (no GPU, no external services):
 | Score + rank 200 candidates | 0.07 s |
 | End-to-end batch screening | **0.68 s** |
 
-Reproduce: upload `samples/` PDFs (or any set) and time `POST /api/screenings/run`.
-
 ## Testing & Quality
 
-- **27 pytest tests**: parsing units, scoring properties (bounds, ordering, disjoint skill sets), repository round-trips on isolated temp DBs, and end-to-end API workflows including upload validation (extension, `%PDF` magic bytes, size caps) and error paths.
-- **CI** (GitHub Actions): ruff lint + pytest, frontend build, and Docker image builds on every push.
-- **Observability**: structured request logs with latency, `X-Response-Time-Ms` header, Prometheus `/metrics`.
+- **27 pytest tests** — parsing units, scoring properties (bounds, ordering, disjoint matched/missing sets), repository round-trips on isolated temp DBs, and end-to-end API workflows including upload validation and error paths (400/404/413)
+- **CI on every push** — ruff lint, pytest, frontend build, and Docker image builds ([workflow](.github/workflows/ci.yml))
+- **Observability** — structured request logs with latency, `X-Response-Time-Ms` header, Prometheus `/metrics`
 
 ```bash
 make test && make lint
 ```
 
-## Configuration
-
-All settings are env-driven with sane defaults (see [.env.example](.env.example)): `RAP_DATA_DIR`, `RAP_OLLAMA_BASE_URL`, `RAP_OLLAMA_MODEL`, `RAP_DEFAULT_SHORTLIST_THRESHOLD`, `RAP_CORS_ORIGINS`, `RAP_MAX_UPLOAD_BYTES`, `RAP_ENABLE_METRICS`, `RAP_LOG_LEVEL`.
-
-## Project Structure
-
-```text
-backend/
-  app/
-    api/        routes, dependency providers
-    core/       settings (pydantic-settings), logging
-    data/       built-in sample job descriptions
-    db/         SQLite database + repository
-    models/     Pydantic request/response schemas
-    services/   parsing, embeddings, screening, email generation
-  tests/        pytest suite (unit + integration)
-  Dockerfile
-frontend/       React (Vite) + Tailwind SPA, nginx Dockerfile
-samples/        5 sample resumes for demos
-docs/           architecture & deployment notes
-```
-
 ## Deployment
 
-One-command local deploy via Docker Compose; cloud steps for Render/Railway in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+The live demo runs on **Render**: backend Web Service from `backend/Dockerfile` with a persistent disk at `/data`, frontend served alongside. Full steps for Render and Railway (plus a go-live checklist) in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-## Non-Goals (deliberate)
+## Future Improvements
 
-- **No auth/user accounts** — single-tenant recruiter tool; adding auth without a threat model is scope creep. The nginx layer is the place for basic auth if exposed publicly.
-- **No task queue** — batch screening completes in <1 s; a queue becomes worthwhile only if parsing moves to LLM-based extraction.
+- **Embedding cache** — persist Ollama embeddings keyed by content hash to cut repeat-screening latency in embedding mode
+- **Postgres option** — contained to the repository layer; worthwhile once multi-tenant or concurrent-writer requirements appear
+- **LLM-based extraction** — swap heuristic resume parsing for structured LLM extraction (at which point an async task queue earns its place)
+- **Auth & multi-tenancy** — API keys + per-recruiter workspaces if the tool outgrows single-tenant use
+- **Richer JD parsing** — weight must-have vs. nice-to-have skills separately in the ranker
 
 ## License
 
-MIT © Prashant Singh
+MIT © [Prashant Singh](https://github.com/prashant290605)

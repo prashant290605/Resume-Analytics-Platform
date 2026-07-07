@@ -1,5 +1,7 @@
 # Deployment
 
+**Live instance:** https://resume-analytics-i93z.onrender.com (Render free tier; cold-starts after idle).
+
 ## Local (Docker Compose)
 
 ```bash
